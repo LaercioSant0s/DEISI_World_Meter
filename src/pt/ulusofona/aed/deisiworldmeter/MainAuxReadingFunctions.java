@@ -3,6 +3,7 @@ package pt.ulusofona.aed.deisiworldmeter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -15,6 +16,12 @@ public class MainAuxReadingFunctions {
         Main.csvPopulationWCountryAndCity = new ArrayList<>();
         Main.inputInvalido = new ArrayList<>();
 
+    }
+
+    static void cleanHashMaps() {
+        Main.alfa2PaisesValidos = new HashMap<>();
+        Main.nomePaisesValidos = new HashMap<>();
+        Main.idPaisesValidos = new HashMap<>();
     }
 
     static boolean isNotValidInteger(String s) {
@@ -301,6 +308,7 @@ public class MainAuxReadingFunctions {
     }
 
     static boolean leFilePolulacao(File ficheiroPopulacao) {
+
         int lePopulacaoCerta = 0;
         int lePopulacaoErrada = 0;
         int primeiraLinhaPopulacaoErrada = -1;
@@ -399,6 +407,8 @@ public class MainAuxReadingFunctions {
                                 popDontHasCountry = false;
                                 lePopulacaoCerta++;
                                 pais.populacao.add(populacao1);
+
+                                populacao1.pais = pais;
                                 Main.csvPopulationWCountryAndCity.add(populacao1);
                                 break;
 
@@ -432,6 +442,8 @@ public class MainAuxReadingFunctions {
             return;
         }
 
+        cleanHashMaps();
+
         int lePaisesCertos = Integer.parseInt(inputPaisesInvalidosParts[1]);
         int lePaisesErrados = Integer.parseInt(inputPaisesInvalidosParts[2]);
         int primeiraLinhaPaisesErrada = Integer.parseInt(inputPaisesInvalidosParts[3]);
@@ -458,6 +470,7 @@ public class MainAuxReadingFunctions {
 
                 Main.nomePaisesValidos.put(pais.nome, pais);
                 Main.idPaisesValidos.put(pais.id, pais);
+                Main.alfa2PaisesValidos.put(pais.alfa2.trim(), pais);
 
             }
         }
@@ -485,7 +498,7 @@ public class MainAuxReadingFunctions {
         while (citiesInterator.hasNext()) {
 
             Cidade cidade = citiesInterator.next();
-            Pais pais = Main.nomePaisesValidos.get(cidade.pais.nome);
+            Pais pais = Main.alfa2PaisesValidos.get(cidade.pais.alfa2);
 
             if (pais == null) {
 

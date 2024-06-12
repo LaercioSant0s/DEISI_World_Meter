@@ -10,6 +10,8 @@ public class Populacao {
 
     int linhaCSV;
 
+    Pais pais;
+
     public Populacao() {
     }
 

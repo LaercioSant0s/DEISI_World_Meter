@@ -15,7 +15,7 @@ public class Main {
 
     static HashMap<String, Pais> nomePaisesValidos = new HashMap<>();
     static HashMap<Integer, Pais> idPaisesValidos = new HashMap<>();
-
+    static HashMap<String, Pais> alfa2PaisesValidos = new HashMap<>();
 
     public static boolean parseFiles(File folder) {
 
@@ -68,10 +68,70 @@ public class Main {
         return new ArrayList<>();
     }
 
+    public static String[] commandTreatment(String commandInput) {
+
+        if (commandInput == null || commandInput.isEmpty()) {
+            return null;
+        }
+
+        String[] commandSimpleParts = commandInput.split(" ");
+
+        if (commandSimpleParts.length == 2 && Character.isDigit(commandSimpleParts[1].charAt(0))) {
+
+            return new String[]{commandSimpleParts[0], commandSimpleParts[1]};
+
+        } else if (commandSimpleParts.length == 3 && Character.isDigit(commandSimpleParts[1].charAt(0)) && Character.isDigit(commandSimpleParts[2].charAt(0))) {
+
+            return new String[]{commandSimpleParts[0], commandSimpleParts[1], commandSimpleParts[2]};
+
+        }
+
+        String[] queryParts = commandInput.split(" ");
+        String[] commandParts = queryParts[0].split("_");
+
+        StringBuilder command = new StringBuilder();
+
+        for (String i : commandParts) {
+            command.append(i).append("_");
+        }
+
+        String queryName = command.substring(0, command.length()-1);
+
+        String queryInputs = commandInput.replace(queryName, "").trim();
+
+        StringBuilder num = new StringBuilder();
+        boolean dontHasNum = true;
+
+        for (char i : queryInputs.toCharArray()) {
+
+            if (Character.isDigit(i)) {
+                num.append(i);
+                dontHasNum = false;
+            } else {
+                break;
+            }
+
+        }
+
+        if (dontHasNum) {
+
+            return new String[]{queryName, queryInputs};
+
+        } else {
+
+            queryInputs = queryInputs.replace(num.toString(), "").trim();
+
+            return new String[]{queryName, num.toString(), queryInputs};
+
+        }
+
+    }
+
     public static Result execute(String command) {
 
         try {
-            String[] commandParts = command.split(" ");
+
+            String[] commandParts = commandTreatment(command);
 
             switch (commandParts[0]) {
 
@@ -95,21 +155,18 @@ public class Main {
 
                 case "SUM_POPULATIONS": //ano 2024
                     try {
-                        return MainQueryFunctions.commandSumPopulation(commandParts[1]);
+                        return MainQueryFunctions.commandSumPopulation(commandParts[2]);
                     } catch (IndexOutOfBoundsException e) {
                         return new Result(false, "comando invalido", null);
                     }
 
                 case "GET_HISTORY":
                     return MainQueryFunctions.commandGetHistory(Integer.parseInt(commandParts[1]),
-                            Integer.parseInt(commandParts[2]),commandParts[3]);
+                            Integer.parseInt(commandParts[2]), commandParts[3]);
 
                 case "GET_MISSING_HISTORY":
                     return MainQueryFunctions.commandGetMissingHistory(Integer.parseInt(commandParts[1]),
                             Integer.parseInt(commandParts[2]));
-
-                case "GET_MOST_POPULOUS":
-                    return MainQueryFunctions.commandGetMostPopulous(Integer.parseInt(commandParts[1]));
 
                 case "GET_TOP_CITIES_BY_COUNTRY":
                     return MainQueryFunctions.commandGetTopCitiesByCountry(Integer.parseInt(commandParts[1]),
@@ -119,21 +176,41 @@ public class Main {
                     return MainQueryFunctions.commandGetDuplicateCities(Integer.parseInt(commandParts[1]));
 
                 case "GET_COUNTRIES_GENDER_GAP":
-                    return MainQueryFunctions.commandGetCountriesGenderGap(Integer.parseInt(commandParts[1]));
+                    try {
+                        return MainQueryFunctions.commandGetCountriesGenderGap(Integer.parseInt(commandParts[1]));
+                    } catch (Exception e){
+                        return new Result(false, "comando invalido", null);
+                    }
 
-                case "GET_TOP_POPULATION_INCREASE":
-                    return MainQueryFunctions.commandGetTopPopulationIncrease(Integer.parseInt(commandParts[1]),
-                            Integer.parseInt(commandParts[2]));
+                case "GET_COUNTRY_CITIES_BY_FIRST_LETTER":
 
-                case "GET_DUPLICATE_CITIES_DIFFERENT_COUNTRIES":
-                    return MainQueryFunctions.commandGetDuplicateCitiesDifferentCountries(Integer.parseInt(commandParts[1]));
+                    try {
 
-                case "GET_CITIES_AT_DISTANCE":
-                    return MainQueryFunctions.commandGetCitiesAtDistance(Integer.parseInt(commandParts[1]),commandParts[2]);
+                        if (commandParts.length == 2 && commandParts[1].length() == 1) {
+                            return MainQueryFunctions.commandGetCountryFirstLetter(commandParts[1].charAt(0));
+                        } else {
+                            return new Result(false, "comando invalido", null);
+                        }
+
+                    } catch (NumberFormatException e){
+                        return new Result(false, "comando invalido", null);
+                    }
 
                 case "INSERT_CITY":
-                    return MainQueryFunctions.commandInsertCity(commandParts[1],commandParts[2],
-                            Integer.parseInt(commandParts[3]),Integer.parseInt(commandParts[4]));
+
+                    try {
+
+                        String[] countryParts = commandParts[1].split(" ");
+
+                        return MainQueryFunctions.commandInsertCity(countryParts[0],countryParts[1],
+                                countryParts[2],Integer.parseInt(countryParts[3]));
+
+                    } catch (IndexOutOfBoundsException e) {
+
+                        return new Result(false, "comando invalido", null);
+
+                    }
+
 
                 case "REMOVE_COUNTRY":
                     return MainQueryFunctions.commandRemoveCountry(commandParts[1]);
@@ -142,8 +219,6 @@ public class Main {
                     return new Result(false, "comando invalido", null);
             }
 
-
-
         } catch (NullPointerException e) {
 
             return new Result(false, "comando invalido", null);
@@ -151,7 +226,6 @@ public class Main {
         }
 
     }
-
 
     public static void main(String[] args) {
 
@@ -164,6 +238,7 @@ public class Main {
             System.out.println("Error loading files");
             return;
         }
+
         long end = System.currentTimeMillis();
 
         System.out.println("Loaded files in " + (end - start) + " ms");
@@ -197,4 +272,5 @@ public class Main {
         } while (line != null && !line.equals("QUIT"));
 
     }
+
 }
