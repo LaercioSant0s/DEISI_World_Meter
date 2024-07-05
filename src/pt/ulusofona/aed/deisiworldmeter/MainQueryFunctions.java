@@ -17,7 +17,7 @@ public class MainQueryFunctions {
                 GET_TOP_CITIES_BY_COUNTRY <num-results> ‹country-name>
                 GET_DUPLICATE_CITIES ‹min_population>
                 GET_COUNTRIES_GENDER_GAP <min-gender-gap>
-                GET_COUNTRIES_BY_FIRST_LETTER <first-letter>
+                GET_COUNTRIES_NUM_CITIES_BY_FIRST_LETTER <country-first-letter>
                 INSERT_CITY ‹alfa2> <city-name> ‹region> ‹population>
                 REMOVE_COUNTRY <country-name>
                 HELP
@@ -273,7 +273,7 @@ public class MainQueryFunctions {
         }
     }
 
-    static Result commandGetCountryFirstLetter(char first_letter) {
+    static Result commandGetCountriesNumCitiesByFirstLetter(char first_letter) {
 
         try {
 
@@ -283,8 +283,11 @@ public class MainQueryFunctions {
 
                 if (pais.nome.charAt(0) == first_letter) {
 
-                    countries.append(pais).append(": ").append(pais.cidades).append(" cities\n");
-
+                    if (pais.cidades.size() == 1) {
+                        countries.append(pais.nome).append(": ").append(pais.cidades.size()).append(" citie\n");
+                    } else {
+                        countries.append(pais.nome).append(": ").append(pais.cidades.size()).append(" cities\n");
+                    }
                 }
 
             }
@@ -300,18 +303,20 @@ public class MainQueryFunctions {
 
         try {
 
+            String lowerAlfa2 = alfa2.toLowerCase();
+
             Cidade cidade;
             cidade = new Cidade();
-            cidade.alfa2 = alfa2.trim();
+            cidade.alfa2 = lowerAlfa2;
             cidade.cidade = city_name;
             cidade.regiao = region;
             cidade.populacao = population;
 
-            Pais paisesAlfa2 = Main.alfa2PaisesValidos.get(alfa2.trim());
+            Pais paisesAlfa2 = Main.alfa2PaisesValidos.get(lowerAlfa2);
 
             if (paisesAlfa2 != null) {
 
-                if (paisesAlfa2.alfa2.equals(alfa2)) {
+                if (paisesAlfa2.alfa2.equals(lowerAlfa2)) {
 
                     paisesAlfa2.cidades.add(cidade); // alfa2PaisesValidos
                     Main.csvCitiesWithCountry.add(cidade); // csv cities

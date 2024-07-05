@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 public class Main {
 
-
     static ArrayList<Pais> csvCountries = new ArrayList<>();
     static ArrayList<Cidade> csvCitiesWithCountry = new ArrayList<>();
     static ArrayList<Populacao> csvPopulationWCountryAndCity = new ArrayList<>();
@@ -74,56 +73,116 @@ public class Main {
             return null;
         }
 
-        String[] commandSimpleParts = commandInput.split(" ");
+        String queryName = commandInput.split(" ")[0];
+        String commandWithoutQueryName = commandInput.replace(queryName, "").trim();
 
-        if (commandSimpleParts.length == 2 && Character.isDigit(commandSimpleParts[1].charAt(0))) {
+        String[] commandParts = commandWithoutQueryName.split(",");
 
-            return new String[]{commandSimpleParts[0], commandSimpleParts[1]};
-
-        } else if (commandSimpleParts.length == 3 && Character.isDigit(commandSimpleParts[1].charAt(0)) && Character.isDigit(commandSimpleParts[2].charAt(0))) {
-
-            return new String[]{commandSimpleParts[0], commandSimpleParts[1], commandSimpleParts[2]};
-
+        if (commandParts.length > 1) {
+            return new String[]{queryName, commandWithoutQueryName};
         }
 
-        String[] queryParts = commandInput.split(" ");
-        String[] commandParts = queryParts[0].split("_");
+        String[] commands = commandWithoutQueryName.split(" ");
 
-        StringBuilder command = new StringBuilder();
+        if (commands.length == 1) { // <1000> v <country>
 
-        for (String i : commandParts) {
-            command.append(i).append("_");
-        }
+            return new String[]{queryName, commands[0]};
 
-        String queryName = command.substring(0, command.length()-1);
 
-        String queryInputs = commandInput.replace(queryName, "").trim();
+        } else if (commands.length == 2) { //>1000> <África>
 
-        StringBuilder num = new StringBuilder();
-        boolean dontHasNum = true;
+            // 1000 2000
+            if (Character.isDigit(commands[0].charAt(0)) && Character.isDigit(commands[1].charAt(0))) {
 
-        for (char i : queryInputs.toCharArray()) {
+                return new String[]{queryName, commands[0], commands[1]};
 
-            if (Character.isDigit(i)) {
-                num.append(i);
-                dontHasNum = false;
-            } else {
-                break;
+            }
+
+            // Arábia Saudita
+            if (Character.isLetter(commands[0].charAt(0)) && Character.isLetter(commands[1].charAt(0))) {
+
+                StringBuilder countryName = new StringBuilder();
+
+                for (String i : commands) {
+                    if (i.equals(" ")) {
+                        countryName.append(" ");
+                    } else {
+                        countryName.append(i);
+                    }
+                }
+
+                return new String[]{queryName, countryName.toString()};
+
+            }
+
+            // >1000> <África>
+            if (Character.isLetter(commands[1].charAt(0))) {
+
+                return new String[]{queryName, commands[0], commands[1]};
+
+            }
+
+
+        } else if (commands.length == 3) { //  <1000> <2000> <África>
+
+            //Africa do Sul
+            if (Character.isLetter(commands[0].charAt(0)) && Character.isLetter(commands[1].charAt(0)) && Character.isLetter(commands[2].charAt(0))) {
+
+                StringBuilder countryName = new StringBuilder();
+
+                for (String i : commands) {
+                    if (i.equals(" ")) {
+                        countryName.append(" ");
+                    } else {
+                        countryName.append(i);
+                    }
+                }
+
+                return new String[]{queryName, countryName.toString()};
+
+            }
+
+            // <year-start> <year-end> ‹country_name>
+            if (Character.isDigit(commands[0].charAt(0)) && Character.isDigit(commands[1].charAt(0)) && Character.isLetter(commands[2].charAt(0))) {
+
+                return new String[]{queryName, commands[0], commands[1], commands[2]};
+
+            }
+
+            // ‹num-results> Arábia Saudita
+            if (Character.isDigit(commands[0].charAt(0)) && Character.isLetter(commands[1].charAt(0)) && Character.isLetter(commands[2].charAt(0))) {
+
+                StringBuilder countryName = new StringBuilder();
+
+                boolean firstLine = true;
+                for (String i : commands) {
+                    if (firstLine) {
+                        firstLine = false;
+                        continue;
+                    }
+                    if (i.equals(" ")) {
+                        countryName.append(" ");
+                    } else {
+                        countryName.append(i);
+                    }
+                }
+
+                return new String[]{queryName, commands[0], countryName.toString()};
+
+            }
+
+
+        } else if (commands.length == 4) {
+
+            if (Character.isLetter(commands[0].charAt(0)) && Character.isLetter(commands[1].charAt(0)) && Character.isDigit(commands[2].charAt(0)) && Character.isDigit(commands[3].charAt(0))) {
+
+                return new String[]{queryName, commands[0], commands[1], commands[2], commands[3]};
+
             }
 
         }
 
-        if (dontHasNum) {
-
-            return new String[]{queryName, queryInputs};
-
-        } else {
-
-            queryInputs = queryInputs.replace(num.toString(), "").trim();
-
-            return new String[]{queryName, num.toString(), queryInputs};
-
-        }
+        return null;
 
     }
 
@@ -155,25 +214,43 @@ public class Main {
 
                 case "SUM_POPULATIONS": //ano 2024
                     try {
-                        return MainQueryFunctions.commandSumPopulation(commandParts[2]);
+                        return MainQueryFunctions.commandSumPopulation(commandParts[1]);
                     } catch (IndexOutOfBoundsException e) {
                         return new Result(false, "comando invalido", null);
                     }
 
                 case "GET_HISTORY":
-                    return MainQueryFunctions.commandGetHistory(Integer.parseInt(commandParts[1]),
-                            Integer.parseInt(commandParts[2]), commandParts[3]);
+                    try {
+                        return MainQueryFunctions.commandGetHistory(Integer.parseInt(commandParts[1]),
+                                Integer.parseInt(commandParts[2]), commandParts[3]);
+                    } catch (IndexOutOfBoundsException e) {
+                        return new Result(false, "comando invalido", null);
+                    }
 
                 case "GET_MISSING_HISTORY":
-                    return MainQueryFunctions.commandGetMissingHistory(Integer.parseInt(commandParts[1]),
-                            Integer.parseInt(commandParts[2]));
+                    try {
+                        return MainQueryFunctions.commandGetMissingHistory(Integer.parseInt(commandParts[1]),
+                                Integer.parseInt(commandParts[2]));
+
+                    } catch (IndexOutOfBoundsException e) {
+                        return new Result(false, "comando invalido", null);
+                    }
 
                 case "GET_TOP_CITIES_BY_COUNTRY":
-                    return MainQueryFunctions.commandGetTopCitiesByCountry(Integer.parseInt(commandParts[1]),
-                            commandParts[2]);
+                    try {
+                        return MainQueryFunctions.commandGetTopCitiesByCountry(Integer.parseInt(commandParts[1]),
+                                commandParts[2]);
+
+                    } catch (IndexOutOfBoundsException e) {
+                        return new Result(false, "comando invalido", null);
+                    }
 
                 case "GET_DUPLICATE_CITIES":
-                    return MainQueryFunctions.commandGetDuplicateCities(Integer.parseInt(commandParts[1]));
+                    try {
+                        return MainQueryFunctions.commandGetDuplicateCities(Integer.parseInt(commandParts[1]));
+                    } catch (IndexOutOfBoundsException e) {
+                        return new Result(false, "comando invalido", null);
+                    }
 
                 case "GET_COUNTRIES_GENDER_GAP":
                     try {
@@ -182,12 +259,12 @@ public class Main {
                         return new Result(false, "comando invalido", null);
                     }
 
-                case "GET_COUNTRY_CITIES_BY_FIRST_LETTER":
+                case "GET_COUNTRIES_NUM_CITIES_BY_FIRST_LETTER":
 
                     try {
 
                         if (commandParts.length == 2 && commandParts[1].length() == 1) {
-                            return MainQueryFunctions.commandGetCountryFirstLetter(commandParts[1].charAt(0));
+                            return MainQueryFunctions.commandGetCountriesNumCitiesByFirstLetter(commandParts[1].charAt(0));
                         } else {
                             return new Result(false, "comando invalido", null);
                         }
@@ -200,10 +277,8 @@ public class Main {
 
                     try {
 
-                        String[] countryParts = commandParts[1].split(" ");
-
-                        return MainQueryFunctions.commandInsertCity(countryParts[0],countryParts[1],
-                                countryParts[2],Integer.parseInt(countryParts[3]));
+                        return MainQueryFunctions.commandInsertCity(commandParts[1],commandParts[2],
+                                commandParts[3],Integer.parseInt(commandParts[4]));
 
                     } catch (IndexOutOfBoundsException e) {
 
